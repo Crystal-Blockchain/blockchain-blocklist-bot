@@ -151,7 +151,7 @@ def finish_attachments_adding(update, context):
 
 
 add_attachments_conv = ConversationHandler(
-    entry_points=[CommandHandler('add_attachments', start_add_attachments)],
+    entry_points=[CommandHandler('addattachments', start_add_attachments)],
     states={
         CHECK_PRESENT_GROUP:
             [MessageHandler(Filters.text & ~Filters.command, check_present_group)],

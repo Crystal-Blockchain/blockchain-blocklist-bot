@@ -370,7 +370,7 @@ def parse_csv(update, context):
 
 
 remove_addresses_conv = ConversationHandler(
-    entry_points=[CommandHandler('remove_addresses', start_remove_addresses)],
+    entry_points=[CommandHandler('removeaddresses', start_remove_addresses)],
     states={
         SELECT_CSV_OR_CONV:
             [MessageHandler(Filters.text & Filters.regex('^Conversation mode$'), send_table),

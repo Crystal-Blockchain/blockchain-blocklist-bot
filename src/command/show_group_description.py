@@ -110,7 +110,7 @@ def sent_description(update, context):
 
 
 show_description_conv = ConversationHandler(
-    entry_points=[CommandHandler('show_description', start_show_description)],
+    entry_points=[CommandHandler('showdescription', start_show_description)],
     states={
         CHECK_PRESENT_GROUP:
             [MessageHandler(Filters.text & ~Filters.command, check_present_group)],

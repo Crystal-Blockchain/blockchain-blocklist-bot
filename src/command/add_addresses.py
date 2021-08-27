@@ -679,7 +679,7 @@ def ask_to_change(update, context):
 
 
 add_address_conv = ConversationHandler(
-    entry_points=[CommandHandler('add_addresses', start_add_addresses)],
+    entry_points=[CommandHandler('addaddresses', start_add_addresses)],
     states={
         NEW_OLD_GROUP:
             [MessageHandler(Filters.text & Filters.regex('^(New group|Existing group)$'), save_new_old_group)],

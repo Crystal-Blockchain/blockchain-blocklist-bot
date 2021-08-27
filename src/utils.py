@@ -13,16 +13,17 @@ import re
 
 
 def sent_continue_message(update, context):
-    time.sleep(2)
     command_description = ''
     for command in context.bot.commands:
         command_description += '/{} - {}\n'.format(command.command, command.description)
 
-    reply = update.message.reply_text('To continue work please select the command:\n'
-                                      '{}'.format(command_description),
-                                      reply_markup=ReplyKeyboardRemove())
+    def send_message(bot_context):
+        reply = bot_context.job.context.reply_text(text='To continue work please select the command:\n'
+                                                   '{}'.format(command_description),
+                                                   reply_markup=ReplyKeyboardRemove())
+        log_this(update, inspect.currentframe().f_code.co_name, reply)
 
-    log_this(update, inspect.currentframe().f_code.co_name, reply)
+    context.job_queue.run_once(send_message, 2, context=update.message)
     return ConversationHandler.END
 
 
@@ -45,6 +46,11 @@ def bot_start(update, context):
 
 
 def about(update, context):
+    if check_user(update, context):
+        pass
+    else:
+        return ConversationHandler.END
+
     reply = update.message.reply_text(bot_about,
                                       disable_web_page_preview=False,
                                       reply_markup=ReplyKeyboardRemove())
@@ -171,39 +177,57 @@ def notify(update, context, text, addresses=''):
 
 def check_user(update, context):
     allowed_users_df = context.bot_data['allowed_users_df']
-    user_id = str(update.effective_user.id)
-    nickname = str(update.effective_user.username)
-    first_last_name = '{} {}'.format(update.effective_user.first_name, update.effective_user.last_name)
+    chat_id = update.effective_chat.id
 
-    if user_id in allowed_users_df['telegram_user_id'].to_list():
-        if pd.isna(allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
-                                        'telegram_user_nickname'].values[0]):
-            allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
-                                 'telegram_user_nickname'] = nickname
-            allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
-                                 'telegram_user_name'] = first_last_name
-            allowed_users_df.drop_duplicates(inplace=True)
-            allowed_users_df.to_csv(allowed_users_df_location_name, index=False)
+    if chat_id > 0:
+        user_id = str(update.effective_user.id)
+        nickname = str(update.effective_user.username)
+        first_last_name = '{} {}'.format(update.effective_user.first_name, update.effective_user.last_name)
 
-        return True
+        if user_id in allowed_users_df['telegram_user_id'].to_list():
+            if pd.isna(allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
+                                            'telegram_user_nickname'].values[0]):
+                allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
+                                     'telegram_user_nickname'] = nickname
+                allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
+                                     'telegram_user_name'] = first_last_name
+                allowed_users_df.drop_duplicates(inplace=True)
+                allowed_users_df.to_csv(allowed_users_df_location_name, index=False)
 
-    elif nickname in allowed_users_df['telegram_user_nickname'].to_list():
-        if (allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
-                                 'telegram_user_id'].values[0] == '') or pd.isna(
-            allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
-                                 'telegram_user_id'].values[0]):
-            allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
-                                 'telegram_user_id'] = user_id
-            allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
-                                 'telegram_user_name'] = first_last_name
-            allowed_users_df.drop_duplicates(inplace=True)
-            allowed_users_df.to_csv(allowed_users_df_location_name, index=False)
-        return True
+            return True
 
-    reply = update.message.reply_text(answer_to_forbidden_user,
-                                      reply_markup=ReplyKeyboardRemove())
-    log_this(update, inspect.currentframe().f_code.co_name, reply)
-    return False
+        elif nickname in allowed_users_df['telegram_user_nickname'].to_list():
+            if (allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
+                                     'telegram_user_id'].values[0] == '') or pd.isna(
+                allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
+                                     'telegram_user_id'].values[0]):
+                allowed_users_df.loc[allowed_users_df['telegram_user_nickname'] == nickname,
+                                     'telegram_user_id'] = user_id
+                allowed_users_df.loc[allowed_users_df['telegram_user_id'] == user_id,
+                                     'telegram_user_name'] = first_last_name
+                allowed_users_df.drop_duplicates(inplace=True)
+                allowed_users_df.to_csv(allowed_users_df_location_name, index=False)
+            return True
+
+        reply = update.message.reply_text(answer_to_forbidden_user,
+                                          reply_markup=ReplyKeyboardRemove())
+        log_this(update, inspect.currentframe().f_code.co_name, reply)
+        return False
+    else:
+        reply = update.message.reply_text('Sorry you can not interact with the \'{}\' in a group chat.\n'
+                                          'Communicate with the bot in a private chat.\n\n'
+                                          '<i>Please delete your message.\nThis message will be deleted in 60 sec.</i>'.format(bot_name),
+
+                                          parse_mode='HTML',
+                                          reply_markup=ReplyKeyboardRemove())
+
+        def delete_reply(bot_context):
+            bot_context.bot.deleteMessage(chat_id=chat_id, message_id=reply.message_id)
+
+        context.job_queue.run_once(delete_reply, 60)
+
+        log_this(update, inspect.currentframe().f_code.co_name, reply)
+        return False
 
 
 # set up the logging

@@ -22,12 +22,12 @@ Modules required are located in ```requirements.txt```
 * [Create](https://core.telegram.org/bots#6-botfather) a bot and get its token
 * Set the commands as an example:  
 ```
-show_description - show a description for any of the added groups of addresses
-show_addresses - show addresses added by you or all users
-check_addresses - check if addresses are present in the table
-add_addresses - add addresses to the table
-add_attachments - add an attachment to a group of addresses
-remove_addresses - remove addresses added by the user
+showdescription - show a description for any of the added groups of addresses
+showaddresses - show addresses added by you or all users
+checkaddresses - check if addresses are present in the table
+addaddresses - add addresses to the table
+addattachments - add an attachment to a group of addresses
+removeaddresses - remove addresses added by the user
 cancel - cancel the conversation any time
 about - the detailed info about the bot
 ```

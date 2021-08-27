@@ -142,5 +142,9 @@ cython_debug/
 .vscode/
 .DS_Store
 
-# config file
+# config and auth files
 config.py
+client_secret.json
+client_secrets.json
+mycreds.txt
+sheets.googleapis.com-python.json

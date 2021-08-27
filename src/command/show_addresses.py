@@ -116,19 +116,19 @@ def sent_table(update, context):
     user_id = update.effective_user.id
     group_name = context.user_data[user_id]['group_name']
     ws_df_user = context.user_data[user_id]['ws_df']
-    ws_df_user = ws_df_user.sort_values(['group_name', 'added_by_me', 'utc_time', 'address', ])
+    ws_df_user = ws_df_user.sort_values(['group_name', 'utc_time', 'reported_by', ])
     if context.user_data[user_id]['group_name'] != 'Show all':
         ws_df_sent = ws_df_user[ws_df_user['group_name'].apply(str) == group_name]
         if context.user_data[user_id]['my_or_all'] == 'My addresses':
             ws_df_sent = ws_df_sent[['address', 'currency']]
         else:
-            ws_df_sent = ws_df_sent[['address', 'currency', 'added_by_me']]
+            ws_df_sent = ws_df_sent[['address', 'currency', 'reported_by']]
     else:
         ws_df_sent = ws_df_user
         if context.user_data[user_id]['my_or_all'] == 'My addresses':
             ws_df_sent = ws_df_sent[['address', 'currency', 'group_name']]
         else:
-            ws_df_sent = ws_df_sent[['address', 'currency', 'group_name', 'added_by_me']]
+            ws_df_sent = ws_df_sent[['address', 'currency', 'group_name', 'reported_by']]
 
     ws_df_sent.reset_index(inplace=True, drop=True)
     ws_df_sent.index += 1
@@ -171,7 +171,7 @@ def export_csv(update, context):
 
 
 show_addresses_conv = ConversationHandler(
-    entry_points=[CommandHandler('show_addresses', start_show_addresses)],
+    entry_points=[CommandHandler('showaddresses', start_show_addresses)],
     states={
         MY_OR_ALL:
             [MessageHandler(Filters.text & Filters.regex('^(My addresses|All addresses)$'), ask_group_name)],

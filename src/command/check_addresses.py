@@ -145,7 +145,7 @@ def export_csv(update, context):
 
 
 check_addresses_conv = ConversationHandler(
-    entry_points=[CommandHandler('check_addresses', start_check_addresses)],
+    entry_points=[CommandHandler('checkaddresses', start_check_addresses)],
     states={
         SELECT_TEXT_OR_CSV:
             [MessageHandler(Filters.text & Filters.regex('^Text$'), ask_addresses),
